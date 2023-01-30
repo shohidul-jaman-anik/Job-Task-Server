@@ -19,6 +19,7 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@clu
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 
+
 function verifyJWT(req, res, next) {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
@@ -33,9 +34,10 @@ function verifyJWT(req, res, next) {
         next();
     });
 }
+
 async function run() {
     try {
-        await client.connect();
+        client.connect();
 
         const ServicesCollection = client.db("doctor-portal").collection("services");
         const BookingCollection = client.db("doctor-portal").collection("Booking");
@@ -92,7 +94,6 @@ async function run() {
             else {
                 return res.status(403).send({ message: "forbiden access" })
             }
-
         })
 
         // find a particular booking for payment
@@ -131,12 +132,6 @@ async function run() {
             res.send(services);
         })
 
-        // get all user
-        app.get('/allUsers', verifyJWT, async (req, res) => {
-            const users = await userCollection.find().toArray()
-            res.send(users)
-        })
-
 
         // Save Registered user information store in the database
         app.put('/user/:email', async (req, res) => {
@@ -151,6 +146,14 @@ async function run() {
             const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET)
             res.send({ result, token })
         })
+
+
+        // get all user
+        app.get('/allUsers', verifyJWT, async (req, res) => {
+            const users = await userCollection.find().toArray()
+            res.send(users)
+        })
+
 
         // Make a admin
         app.put('/user/admin/:email', verifyJWT, async (req, res) => {
@@ -179,6 +182,7 @@ async function run() {
             const isAdmin = user.role === "admin"
             res.send({ admin: isAdmin })
         })
+
 
         // delete order item
         app.delete('/booking/:id', async (req, res) => {
